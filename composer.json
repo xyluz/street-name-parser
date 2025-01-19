@@ -1,0 +1,24 @@
+{
+    "name": "xyluz/street",
+    "description": "Street - PHP StringFormatAdjuster Test",
+    "autoload": {
+        "psr-4": {
+            "Xyluz\\Street\\": "src/"
+        },
+        "files": [
+            "helpers.php"
+        ]
+    },
+    "authors": [
+        {
+            "name": "Seyi Onifade",
+            "email": "xyluz@ymail.com"
+        }
+    ],
+    "require-dev": {
+        "phpunit/phpunit": "^11"
+    },
+    "require": {
+        "luchaninov/csv-file-loader": "^1.9"
+    }
+}

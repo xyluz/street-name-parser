@@ -1,0 +1,5 @@
+/src/homeowner.csv
+/.phpunit.result.cache
+/vendor/
+/.idea
+/.DS_Store
