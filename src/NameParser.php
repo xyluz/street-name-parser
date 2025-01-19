@@ -29,7 +29,7 @@ class NameParser
 
         foreach ($csv as $line){
             $this->parsed[] = $this->extractNameComponents($line['homeowner']);
-            $this->resetAllParamters();
+            $this->resetAllParameters();
         }
 
         return $this->parsed;
@@ -225,7 +225,7 @@ class NameParser
         return $multiple;
     }
 
-    private function resetAllParamters(): void
+    private function resetAllParameters(): void
     {
         $this->initials = [];
         $this->currentHomeOwnerArray = [];
