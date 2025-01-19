@@ -4,7 +4,7 @@ Loads a CSV file, and parses the content split given names with title, initials,
 
 ### Usage
 
-Start by setting the csv file path in `src/Consts.php`, then follow eithe method 1 or 2 below
+Start by setting the csv file path in `src/Consts.php`, then follow either method 1 or 2 below
 
 #### Method 1: 
 

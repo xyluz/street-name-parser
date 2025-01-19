@@ -60,9 +60,9 @@ class NameParser
      */
     public function extractNameComponents(string $homeowner): array
     {
-        $this->currentHomeOwnerArray = explode(' ', str_replace('.', '', $homeowner));
+        $this->currentHomeOwnerArray = explode(' ', $this->cleanInput($homeowner));
 
-        $this->extactTitles();
+        $this->extractTitles();
         $this->extractConnectors();
         $this->extractInitials();
 
@@ -77,7 +77,7 @@ class NameParser
      *
      * @return void
      */
-    public function extactTitles(): void
+    public function extractTitles(): void
     {
         $titles = ['Mr','Mrs','Ms','Master','Dr','Mister','Prof'];
 
@@ -164,26 +164,32 @@ class NameParser
     /**
      * Build single result, can be built with specified parameters or global variables
      *
-     * @param $title
-     * @param $first_name
-     * @param $last_name
+     * @param string|null $title
+     * @param null $first_name
+     * @param null $last_name
      * @return array
      */
     private function fetchSingleName(
-        $title = null, $first_name = null, $last_name = null
+        ?string $title = null, ?string $first_name = null, ?string $last_name = null
     ): array
     {
 
         $hasTwoNames = count($this->currentHomeOwnerArray) > 1;
-        $hasInitial = count($this->initials) > 0 ;
+        $hasInitial = count($this->initials) > 0;
+
+        $initial = $hasInitial ? $this->initials[0] : null;
+
+        unset($this->initials[0]);
+        $this->initials = array_values($this->initials);
 
         $title = $title ?? $this->titles[0] ?? null;
+
         $first_name = $first_name ?? ($hasTwoNames ? $this->currentHomeOwnerArray[0] : null);
         $last_name = $last_name ?? ($hasTwoNames ? $this->currentHomeOwnerArray[1] : $this->currentHomeOwnerArray[0]);
 
         return [
             'title'=> $title,
-            'initial'=> $hasInitial ? $this->initials[0] : null,
+            'initial'=> $initial,
             'first_name'=> $first_name,
             'last_name'=> $last_name,
         ];
@@ -206,20 +212,23 @@ class NameParser
             case 1:
                 $multiple[] = $this->fetchSingleName($this->titles[0], null, $this->currentHomeOwnerArray[0]);
                 if (isset($this->titles[1])) {
-                    $multiple[] = $this->fetchSingleName($this->titles[1], null, $this->currentHomeOwnerArray[0]);
+                    $multiple[] = $this->fetchSingleName( $this->titles[1], null, $this->currentHomeOwnerArray[0]);
                 }
                 break;
             case 2:
-                $multiple[] = $this->fetchSingleName($this->titles[0], $this->currentHomeOwnerArray[0], $this->currentHomeOwnerArray[1]);
+                $multiple[] = $this->fetchSingleName( $this->titles[0], $this->currentHomeOwnerArray[0], $this->currentHomeOwnerArray[1]);
                 if (isset($this->titles[1])) {
-                    $multiple[] = $this->fetchSingleName($this->titles[1], $this->currentHomeOwnerArray[0], $this->currentHomeOwnerArray[1]);
+                    $multiple[] = $this->fetchSingleName( $this->titles[1], $this->currentHomeOwnerArray[0], $this->currentHomeOwnerArray[1]);
                 }
                 break;
             case 4:
                 $splitNames = array_chunk($this->currentHomeOwnerArray, 2);
-                $multiple[] = $this->fetchSingleName($this->titles[0], $splitNames[0][0], $splitNames[0][1]);
-                $multiple[] = $this->fetchSingleName($this->titles[1], $splitNames[1][0], $splitNames[1][1]);
+                $multiple[] = $this->fetchSingleName( $this->titles[0], $splitNames[0][0], $splitNames[0][1]);
+                $multiple[] = $this->fetchSingleName( $this->titles[1], $splitNames[1][0], $splitNames[1][1]);
                 break;
+            default:
+                $multiple = $this->handleCaseAboveFour();
+                
         }
 
         return $multiple;
@@ -231,6 +240,40 @@ class NameParser
         $this->currentHomeOwnerArray = [];
         $this->titles = [];
         $this->connectors = [];
+    }
+
+    /**
+     * It's possible for the user to enter data with double-spacing,
+     * this method ensure that all . are removed from Initials and double spaces are converted to
+     * single space.
+     *
+     * @param string $string
+     * @return string
+     */
+    private function cleanInput(string $string): string {
+        return preg_replace('/\s+/', ' ', str_replace('.', '', $string));
+    }
+
+    /**
+     * Handles cases not in the current sample data - probably applicable
+     * @return array
+     */
+    private function handleCaseAboveFour(): array
+    {
+        $multiple = [];
+
+        $splitNames = array_chunk($this->currentHomeOwnerArray, 2);
+        $titleCount = count($this->titles);
+
+        foreach ($splitNames as $index => $names) {
+            $title = $titleCount > 0 ? $this->titles[$index % $titleCount] ?? null : null;
+            $firstName = $names[0] ?? null;
+            $lastName = $names[1] ?? null;
+
+            $multiple[] = $this->fetchSingleName( $title ?? null, $firstName, $lastName);
+        }
+
+        return $multiple;
     }
 
 

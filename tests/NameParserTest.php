@@ -65,7 +65,7 @@ class NameParserTest extends TestCase
         $contentLoaded = $this->parser->setImportPath( Consts::CORRECT_FILE_PATH)->loadFile();
 
         $this->assertNotEmpty($contentLoaded);
-        $this->assertCount(15, $contentLoaded);
+        $this->assertCount(17, $contentLoaded);
 
     }
 
@@ -158,7 +158,7 @@ class NameParserTest extends TestCase
         ];
 
         yield 'given multiple titles with connection &, first and last_name' => [
-            'name'=>'Mr and Mrs Seyi Onifade',
+            'name'=>'Mr & Mrs Seyi Onifade',
             'expect'=> [
                 [
                     'title'=> 'Mr',
@@ -193,6 +193,167 @@ class NameParserTest extends TestCase
             ],
         ];
 
+        yield 'given three unique names with connector and' => [
+            'name'=>'Mr Seyi Onifade and Mrs Mike Smith & Dr Love Tab',
+            'expect'=> [
+                [
+                    'title'=> 'Mr',
+                    'initial'=>null,
+                    'first_name'=>'Seyi',
+                    'last_name'=>'Onifade',
+                ],
+                [
+                    'title'=> 'Mrs',
+                    'initial'=>null,
+                    'first_name'=>'Mike',
+                    'last_name'=>'Smith',
+                ],
+                [
+                    'title'=> 'Dr',
+                    'initial'=>null,
+                    'first_name'=>'Love',
+                    'last_name'=>'Tab',
+                ]
+            ],
+        ];
+
+        yield 'given four unique names with connector and' => [
+            'name'=>'Mr Seyi Onifade and Mr Mike Smith & Mrs Love Tab and Master Yes Man',
+            'expect'=> [
+                [
+                    'title'=> 'Mr',
+                    'initial'=>null,
+                    'first_name'=>'Seyi',
+                    'last_name'=>'Onifade',
+                ],
+                [
+                    'title'=> 'Mr',
+                    'initial'=>null,
+                    'first_name'=>'Mike',
+                    'last_name'=>'Smith',
+                ],
+                [
+                    'title'=> 'Mrs',
+                    'initial'=>null,
+                    'first_name'=>'Love',
+                    'last_name'=>'Tab',
+                ],
+                [
+                    'title'=> 'Master',
+                    'initial'=>null,
+                    'first_name'=>'Yes',
+                    'last_name'=>'Man',
+                ]
+            ],
+        ];
+
+        yield 'given four messy typed names with connectors and titles' => [
+            'name'=>'Mr Seyi Onifade  and Mr  Mike    Smith &    Mrs Love    Tab and   Master Yes Man',
+            'expect'=> [
+                [
+                    'title'=> 'Mr',
+                    'initial'=>null,
+                    'first_name'=>'Seyi',
+                    'last_name'=>'Onifade',
+                ],
+                [
+                    'title'=> 'Mr',
+                    'initial'=>null,
+                    'first_name'=>'Mike',
+                    'last_name'=>'Smith',
+                ],
+                [
+                    'title'=> 'Mrs',
+                    'initial'=>null,
+                    'first_name'=>'Love',
+                    'last_name'=>'Tab',
+                ],
+                [
+                    'title'=> 'Master',
+                    'initial'=>null,
+                    'first_name'=>'Yes',
+                    'last_name'=>'Man',
+                ]
+            ],
+        ];
+
+        yield 'given four messy typed names with connectors, titles and initials' => [
+            'name'=>'Mr A Seyi Onifade  and Mr  B Mike    Smith &    Mrs C Love    Tab and   Master D Yes Man',
+            'expect'=> [
+                [
+                    'title'=> 'Mr',
+                    'initial'=>'A',
+                    'first_name'=>'Seyi',
+                    'last_name'=>'Onifade',
+                ],
+                [
+                    'title'=> 'Mr',
+                    'initial'=>'B',
+                    'first_name'=>'Mike',
+                    'last_name'=>'Smith',
+                ],
+                [
+                    'title'=> 'Mrs',
+                    'initial'=>'C',
+                    'first_name'=>'Love',
+                    'last_name'=>'Tab',
+                ],
+                [
+                    'title'=> 'Master',
+                    'initial'=>'D',
+                    'first_name'=>'Yes',
+                    'last_name'=>'Man',
+                ]
+            ],
+        ];
+
+        yield 'given four messy typed names with connectors, titles and some initials' => [
+            'name'=>'Mr A Seyi Onifade  and Mr  B Mike    Smith &    Mrs Love    Tab and   Master Yes Man',
+            'expect'=> [
+                [
+                    'title'=> 'Mr',
+                    'initial'=>'A',
+                    'first_name'=>'Seyi',
+                    'last_name'=>'Onifade',
+                ],
+                [
+                    'title'=> 'Mr',
+                    'initial'=>'B',
+                    'first_name'=>'Mike',
+                    'last_name'=>'Smith',
+                ],
+                [
+                    'title'=> 'Mrs',
+                    'initial'=>null,
+                    'first_name'=>'Love',
+                    'last_name'=>'Tab',
+                ],
+                [
+                    'title'=> 'Master',
+                    'initial'=>null,
+                    'first_name'=>'Yes',
+                    'last_name'=>'Man',
+                ]
+            ],
+        ];
+
+        yield 'given four messy typed names with connectors, titles and some initials with last name only' => [
+            'name'=>'Mr A Onifade  and Mr Smith &  Mrs Tab and  Master Man',
+            'expect'=> [
+                [
+                    'title'=> 'Mr',
+                    'initial'=>'A',
+                    'first_name'=>'Onifade',
+                    'last_name'=>'Smith',
+                ],
+                [
+                    'title'=> 'Mr',
+                    'initial'=>null,
+                    'first_name'=>'Tab',
+                    'last_name'=>'Man',
+                ]
+            ],
+        ];
 
     }
 
@@ -205,10 +366,6 @@ class NameParserTest extends TestCase
 
         $result = $this->parser->extractNameComponents($name);
         $this->assertEquals($expect, $result);
-        $this->assertSame($result['first_name'],$expect['first_name']);
-        $this->assertSame($result['last_name'],$expect['last_name']);
-        $this->assertSame($result['title'],$expect['title']);
-        $this->assertSame($result['initials'],$expect['initials']);
 
     }
 
@@ -216,8 +373,7 @@ class NameParserTest extends TestCase
     public function test_parser_loads_and_parses_csv_file(){
 
         $result = $this->parser->setImportPath( Consts::CORRECT_FILE_PATH)->run();
-
-        $this->assertCount(15,$result);
+        $this->assertCount(17,$result);
         $this->assertIsArray($result);
 
     }
